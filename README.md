@@ -31,7 +31,7 @@ Current feature are:
 
 ## Getting started
 
-1. Clone the repository into your `Arduino` directory. (`git clone https://github.com/930913/framework32.git`)
+1. Clone the repository into your `Arduino` directory. (`git clone https://github.com/FabLab-BiH/framework32/framework32.git`)
 2. Copy `config.example.h` to `config.h`
 3. Populate `config.h` with your config (e.g. WiFi connections).
 
