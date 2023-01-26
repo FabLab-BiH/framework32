@@ -1,5 +1,7 @@
 ![Demonstration](media/demo.gif)
 
+UPDATED BY FABLAB BIH TEAM TO WORK
+
 # Framework32
 
 Framework32 is designed to give your ESP32 (currently TTGO T-Display) the ability
