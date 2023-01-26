@@ -1,6 +1,6 @@
 ![Demonstration](media/demo.gif)
 
-UPDATED BY FABLAB BIH TEAM TO WORK
+**UPDATED BY FABLAB BIH TEAM TO WORK**
 
 # Framework32
 
