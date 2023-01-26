@@ -4,7 +4,7 @@
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
-//#include <WiFiUdp.h>
+#include <WiFiUdp.h>
 #include <Wire.h>
 //#define LONGCLICK_MS    500
 //#define DOUBLECLICK_MS  500
@@ -20,10 +20,27 @@ int numapps;
 void switchApp(int ctx);
 #include "apps.h"
 
+#ifndef TFT_DISPOFF
+#define TFT_DISPOFF 0x28
+#endif
+
+#ifndef TFT_SLPIN
+#define TFT_SLPIN 0x10
+#endif
+
+#define TFT_MOSI 19
+#define TFT_SCLK 18
+#define TFT_CS 5
+#define TFT_DC 16
+#define TFT_RST 23
+
+#define TFT_BL 4 // Display backlight control pin
+#define ADC_EN 14
+#define ADC_PIN 34
 #define BUTTON_1 35
 #define BUTTON_2 0
 
-TFT_eSPI tft = TFT_eSPI();
+TFT_eSPI tft = TFT_eSPI(135, 240);
 Button2 btn1(BUTTON_1);
 Button2 btn2(BUTTON_2);
 
@@ -36,101 +53,28 @@ void button_init() {
   btn1.setLongClickHandler([](Button2 & b) {
     Serial.println("Button 1 pressed long.");
     if (!wakeCallback()) {
-      byte orientation = Util::Screen::getRotation();
-      if(orientation == 0) {
-        apps[menu.getCtx()]->onButton1LongClick();
-      } else if(orientation == 1) {
-
-      } else if(orientation == 2) {
-
-      } else {
-        apps[menu.getCtx()]->onButton1LongClick();
-      }
+      apps[menu.getCtx()]->onButton1LongClick();
     }
   });
-  btn2.setLongClickHandler([](Button2 & b) {
-    Serial.println("Button 2 pressed long.");
-    if (!wakeCallback()) {
-      byte orientation = Util::Screen::getRotation();
-      if(orientation == 0) {
-
-      } else if(orientation == 1) {
-        apps[menu.getCtx()]->onButton1LongClick();
-      } else if(orientation == 2) {
-        apps[menu.getCtx()]->onButton1LongClick();
-      } else {
-
-      }
-    }
-  });
-
   btn1.setClickHandler([](Button2 & b) {
     Serial.println("Button 1 pressed short.");
     if (!wakeCallback()) {
-      byte orientation = Util::Screen::getRotation();
-      if(orientation == 0) {
-        apps[menu.getCtx()]->onButton1Click();
-      } else if(orientation == 1) {
-        apps[menu.getCtx()]->onButton2Click();
-      } else if(orientation == 2) {
-        apps[menu.getCtx()]->onButton2Click();
-      } else {
-        apps[menu.getCtx()]->onButton1Click();
-      }
+      apps[menu.getCtx()]->onButton1Click();
     }
   });
+
   btn2.setClickHandler([](Button2 & b) {
     Serial.println("Button 2 pressed short.");
     if (!wakeCallback()) {
-      byte orientation = Util::Screen::getRotation();
-      if(orientation == 0) {
-        apps[menu.getCtx()]->onButton2Click();
-      } else if(orientation == 1) {
-        apps[menu.getCtx()]->onButton1Click();
-      } else if(orientation == 2) {
-        apps[menu.getCtx()]->onButton1Click();
-      } else {
-        apps[menu.getCtx()]->onButton2Click();
-      }
-    }
-  });
-
-  btn1.setDoubleClickHandler([](Button2 & b) {
-    Serial.println("Button 2 pressed double.");
-    if (!wakeCallback()) {
-      byte orientation = Util::Screen::getRotation();
-      if(orientation == 0) {
-
-      } else if(orientation == 1) {
-        apps[menu.getCtx()]->onClose();
-        menu.setCtx(0);
-        menu.onSetup(tft);
-      } else if(orientation == 2) {
-        apps[menu.getCtx()]->onClose();
-        menu.setCtx(0);
-        menu.onSetup(tft);
-      } else {
-
-      }
+      apps[menu.getCtx()]->onButton2Click();
     }
   });
   btn2.setDoubleClickHandler([](Button2 & b) {
     Serial.println("Button 2 pressed double.");
     if (!wakeCallback()) {
-      byte orientation = Util::Screen::getRotation();
-      if(orientation == 0) {
-        apps[menu.getCtx()]->onClose();
-        menu.setCtx(0);
-        menu.onSetup(tft);
-      } else if(orientation == 1) {
-
-      } else if(orientation == 2) {
-
-      } else {
-        apps[menu.getCtx()]->onClose();
-        menu.setCtx(0);
-        menu.onSetup(tft);
-      }
+      apps[menu.getCtx()]->onClose();
+      menu.setCtx(0);
+      menu.onSetup(tft);
     }
   });
 }
@@ -149,10 +93,8 @@ void setup()
   numapps = (sizeof(apps) / sizeof(App*));
   initialiseConfig();
 
-  byte rotation = configDoc.containsKey("rotation") ? configDoc["rotation"] : 0;
-
   tft.init();
-  Util::Screen::setRotation(tft, rotation);
+  tft.setRotation(0);
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(2);
   tft.setTextColor(TFT_WHITE);
@@ -162,13 +104,7 @@ void setup()
 
   if (TFT_BL > 0) { // TFT_BL has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
     pinMode(TFT_BL, OUTPUT); // Set backlight pin to output mode
-    //digitalWrite(TFT_BL, TFT_BACKLIGHT_ON); // Turn backlight on. TFT_BACKLIGHT_ON has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
-
-    ledcSetup(Util::Screen::pwmLedChannelTFT, Util::Screen::pwmFreq, Util::Screen::pwmResolution);
-    ledcAttachPin(TFT_BL, Util::Screen::pwmLedChannelTFT);
-
-    byte brightness = configDoc.containsKey("screenBrightness") ? configDoc["screenBrightness"] : 255;
-    Util::Screen::setBrightness(brightness);
+    digitalWrite(TFT_BL, TFT_BACKLIGHT_ON); // Turn backlight on. TFT_BACKLIGHT_ON has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
   }
 
   tft.setSwapBytes(true);
@@ -183,15 +119,6 @@ void setup()
   }
   initialiseSettings();
   calibrateBattery();
-
-  const char* tz = configDoc.containsKey("timezone") ? configDoc["timezone"].as<char*>() : "GMT0";
-  clockFormat = configDoc.containsKey("clockFormat") ? configDoc["clockFormat"].as<char*>() : "%H:%M";
-  setenv("TZ", tz, 1);
-
-  sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  sntp_setservername(0, "pool.ntp.org");
-  sntp_init();
-  tzset();
 
   menu.onSetup(tft);
 
@@ -227,7 +154,7 @@ void loopProg(void *pvParameters) {
     if (!app->getFullscreen()) renderStatus(tft);
     app->render(tft);
     // TODO: Remove this delay without tripping the watchdog
-    vTaskDelay(1);
+    vTaskDelay(10);
   }
 }
 
@@ -236,6 +163,12 @@ void loopBackground(void *pvParameters) {
   (void) pvParameters;
   for (;;) {
     if (wifiEnabled && !hotspotEnabled && WiFiMulti.run() == WL_CONNECTED) {
+      if (!beganTime) {
+        timeClient.begin();
+        beganTime = true;
+      }
+      timeClient.update();
+
       int rssi = WiFi.RSSI();
       wifiSignal = wifiStrength(rssi);
     } else {

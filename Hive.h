@@ -9,7 +9,7 @@ class Hive : public App {
     const unsigned short* getIcon() override {
       return hivelogo;
     };
-    void onSetup(TFT_eSPI& tft) override {
+    void onSetup(TFT_eSPI tft) override {
       JsonObject hiveSettings = getSettings();
       String username = hiveSettings["username"];
       Serial.print("Username for Hive: "); Serial.println(username);
@@ -21,7 +21,7 @@ class Hive : public App {
         {
           // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
           HTTPClient https;
-          Util::Screen::fillScreen(tft, TFT_BLACK);
+          fillScreen(tft, TFT_BLACK);
           tft.setTextColor(TFT_WHITE, TFT_BLACK);  tft.setTextSize(1);
 
           tft.setCursor(0, 10, 2);

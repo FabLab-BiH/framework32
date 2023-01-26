@@ -8,18 +8,18 @@ class DemoApp : public App {
     }
 
     // Runs once when the app starts. Like the Arduino "setup" function
-    void onSetup(TFT_eSPI& tft) override {
+    void onSetup(TFT_eSPI tft) override {
       c = 0;
       shouldRender = true;
     };
 
     // Runs repeatedly for the app's lifecycle. Like the Arduino "loop" function
-    void render(TFT_eSPI& tft) override {
+    void render(TFT_eSPI tft) override {
       // No need to redraw if not updated - this reduces flicker from repeatedly redrawing
       if (!shouldRender) return;
 
       // Helper function to blank the screen without overwriting the status bar
-      Util::Screen::fillScreen(tft, TFT_BLACK);
+      fillScreen(tft, TFT_BLACK);
       tft.setTextColor(TFT_WHITE, TFT_BLACK);
       tft.setTextSize(2);
 

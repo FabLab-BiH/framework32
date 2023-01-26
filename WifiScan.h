@@ -6,9 +6,9 @@ class WifiScan : public App {
     char* getMenuName() override {
       return "Scan WiFi";
     }
-    void onSetup(TFT_eSPI& tft) override {
+    void onSetup(TFT_eSPI tft) override {
       tft.setTextColor(TFT_GREEN, TFT_BLACK);
-      Util::Screen::fillScreen(tft, TFT_BLACK);
+      fillScreen(tft, TFT_BLACK);
       tft.setTextDatum(MC_DATUM);
       tft.setTextSize(1);
 
@@ -18,11 +18,11 @@ class WifiScan : public App {
       wifiOpen = true;
     }
 
-    void render(TFT_eSPI& tft) override {
+    void render(TFT_eSPI tft) override {
       char buff[512];
       int16_t n = WiFi.scanNetworks();
       if (!wifiOpen) return;
-      Util::Screen::fillScreen(tft, TFT_BLACK);
+      fillScreen(tft, TFT_BLACK);
       if (n == 0) {
         tft.drawString("No networks found", tft.width() / 2, tft.height() / 2);
       } else {
